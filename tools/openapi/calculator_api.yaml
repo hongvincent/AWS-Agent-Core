@@ -1,0 +1,235 @@
+openapi: 3.0.0
+info:
+  title: Calculator API
+  description: Simple calculator API for AgentCore Gateway testing
+  version: 1.0.0
+  contact:
+    name: AgentCore Test Team
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server (placeholder)
+  - url: http://localhost:8000/v1
+    description: Local development server
+
+paths:
+  /add:
+    post:
+      summary: Add two numbers
+      description: Adds two numbers and returns the sum
+      operationId: addNumbers
+      tags:
+        - calculator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - a
+                - b
+              properties:
+                a:
+                  type: number
+                  description: First number
+                  example: 3
+                b:
+                  type: number
+                  description: Second number
+                  example: 5
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sum:
+                    type: number
+                    description: Sum of a and b
+                    example: 8
+                  operation:
+                    type: string
+                    example: "addition"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /subtract:
+    post:
+      summary: Subtract two numbers
+      description: Subtracts b from a and returns the result
+      operationId: subtractNumbers
+      tags:
+        - calculator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - a
+                - b
+              properties:
+                a:
+                  type: number
+                  description: Minuend
+                  example: 10
+                b:
+                  type: number
+                  description: Subtrahend
+                  example: 3
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: number
+                    description: Result of a - b
+                    example: 7
+                  operation:
+                    type: string
+                    example: "subtraction"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /multiply:
+    post:
+      summary: Multiply two numbers
+      description: Multiplies two numbers and returns the product
+      operationId: multiplyNumbers
+      tags:
+        - calculator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - a
+                - b
+              properties:
+                a:
+                  type: number
+                  description: First factor
+                  example: 4
+                b:
+                  type: number
+                  description: Second factor
+                  example: 7
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    type: number
+                    description: Product of a and b
+                    example: 28
+                  operation:
+                    type: string
+                    example: "multiplication"
+
+  /divide:
+    post:
+      summary: Divide two numbers
+      description: Divides a by b and returns the quotient
+      operationId: divideNumbers
+      tags:
+        - calculator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - a
+                - b
+              properties:
+                a:
+                  type: number
+                  description: Dividend
+                  example: 20
+                b:
+                  type: number
+                  description: Divisor (must not be zero)
+                  example: 4
+                  minimum: 0.0000001
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quotient:
+                    type: number
+                    description: Quotient of a / b
+                    example: 5
+                  operation:
+                    type: string
+                    example: "division"
+        '400':
+          description: Invalid input (e.g., division by zero)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "ValidationError"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Parameter 'a' must be a number"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Optional JWT authentication
+
+security:
+  - BearerAuth: []
+  - {}  # Allow unauthenticated access for testing
