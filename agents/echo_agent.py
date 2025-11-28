@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+import uuid
 from typing import Any, Dict
 
 # Configure logging
@@ -35,7 +36,8 @@ class EchoAgent:
 
     def _generate_session_id(self) -> str:
         """Generate a unique session ID"""
-        return f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # Use UUID to avoid collisions when created within the same second
+        return f"session_{uuid.uuid4().hex}"
 
     def process_message(self, message: str) -> Dict[str, Any]:
         """

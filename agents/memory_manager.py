@@ -223,15 +223,31 @@ class MemoryManager:
                     session_memory.extract_information("user_name", name)
                     self.long_term_memory.save_user_preference(user_id, "name", name)
 
-        # Extract location preference
-        if "강남점" in user_input or "부산점" in user_input:
-            if "주로" in user_input or "기본" in user_input or "선호" in user_input:
-                for location in ["강남", "부산", "서울", "대전"]:
-                    if location in user_input:
-                        session_memory = self.get_session_memory(session_id)
-                        session_memory.extract_information("preferred_branch", location)
-                        self.long_term_memory.save_user_preference(user_id, "preferred_branch", location)
-                        break
+        # Extract location preference (broadened matching for simple statements)
+        branch_candidates = [
+            ("강남점", "강남"),
+            ("부산점", "부산"),
+            ("서울점", "서울"),
+            ("대전점", "대전"),
+        ]
+
+        matched_branch = None
+        for phrase, normalized in branch_candidates:
+            if phrase in user_input:
+                matched_branch = normalized
+                break
+
+        # If not matched with "...점", try bare location names
+        if not matched_branch:
+            for normalized in ["강남", "부산", "서울", "대전"]:
+                if normalized in user_input:
+                    matched_branch = normalized
+                    break
+
+        if matched_branch:
+            session_memory = self.get_session_memory(session_id)
+            session_memory.extract_information("preferred_branch", matched_branch)
+            self.long_term_memory.save_user_preference(user_id, "preferred_branch", matched_branch)
 
     def end_session(self, session_id: str, user_id: str) -> None:
         """End session and transfer learnings to long-term memory"""

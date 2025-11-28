@@ -82,6 +82,102 @@ AWS-Agent-Core/
 
 ## 🚀 설치 및 설정
 
+### ⚡ 빠른 시작 (Linux/macOS)
+
+```bash
+# 1) 가상환경 생성 및 활성화
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 2) 의존성 설치
+pip install -r requirements.txt
+
+### (옵션) OpenAI LLM 연동 빠른 실증
+
+네트워크가 가능한 환경에서 OpenAI API 키가 있다면 간단히 LLM 응답을 확인할 수 있습니다. 키는 환경변수로만 설정하세요(절대 커밋 금지).
+
+1) 환경 변수 설정
+
+```bash
+export OPENAI_API_KEY="<your-openai-key>"
+export OPENAI_MODEL="gpt-4o-mini"   # 선택, 기본값 gpt-4o-mini
+```
+
+2) 단일 프롬프트 확인
+
+```bash
+python tools/llm_client.py "안녕하세요! 한 줄로 인사해 주세요."
+```
+
+3) Runtime 핸들러 형태로 호출
+
+```bash
+python agents/llm_agent.py
+# 또는 이벤트 형태로 직접 호출
+python -c 'from agents.llm_agent import handler; import json; print(handler({"message":"오늘 날씨처럼 상쾌하게 인사해줘"}))'
+```
+
+문제 발생 시 `OPENAI_API_KEY`가 셋업되었는지, 프록시/네트워크 정책에 막히지 않는지 확인하세요.
+
+# 3) 환경 변수 파일 생성 (선택)
+cp config/example.env .env
+
+# 4) 전체 테스트 (느린 테스트 제외)
+pytest -v -m "not slow"
+
+# (옵션) Calculator 서비스 통합 테스트 포함 실행
+# 터미널 A: 서비스 실행
+python tools/calculator_service.py
+# 터미널 B: 서비스 테스트 실행
+pytest tests/02-gateway/test_openapi_tool.py --run-service-tests -v
+```
+
+## ☁️ AWS 설정 가이드
+
+이 리포지토리의 테스트는 기본적으로 로컬/모의 환경(moto, 로컬 서버)을 사용합니다. 즉, "테스트 실행"만을 위해서는 실제 AWS 자격 증명이 필요하지 않습니다. 다만, 추후 실제 AWS 리소스와 통합하거나 배포를 진행하려면 아래 순서로 준비하세요.
+
+### 1) AWS CLI 설치 (Linux)
+
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+```
+
+### 2) 프로파일 생성 및 리전 설정
+
+```bash
+# 표준 자격 증명 (Access Key)
+aws configure --profile agentcore
+
+# 또는 SSO 로그인 방식 (조직 환경 권장)
+aws configure sso --profile agentcore
+
+# 셸에서 기본 프로파일/리전 지정 (선택)
+export AWS_PROFILE=agentcore
+export AWS_DEFAULT_REGION=ap-northeast-2
+```
+
+### 3) 자격 증명 확인
+
+```bash
+aws sts get-caller-identity --profile agentcore
+```
+
+정상적으로 계정/ARN이 출력되면 설정이 완료된 것입니다.
+
+### 4) `.env` 값 업데이트
+
+`AWS_REGION`, `AWS_ACCOUNT_ID`를 실제 계정에 맞게 설정하세요. 예시는 다음과 같습니다.
+
+```dotenv
+AWS_REGION=ap-northeast-2
+AWS_ACCOUNT_ID=123456789012
+```
+
+> 참고: 현재 테스트 코드는 실제 AWS 호출이 없으며, 대부분 모의(moto) 또는 로컬 서비스(예: Calculator)로 검증됩니다. 실제 리소스 연동은 별도 통합 단계에서 진행하세요.
+
 ### 1. 사전 요구사항
 
 - Python 3.9 이상

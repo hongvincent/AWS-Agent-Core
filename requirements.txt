@@ -33,3 +33,6 @@ opentelemetry-instrumentation>=0.43b0
 black>=24.0.0
 ruff>=0.2.0
 mypy>=1.8.0
+
+# LLM Providers (optional)
+openai>=1.51.0
