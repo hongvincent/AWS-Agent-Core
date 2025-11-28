@@ -262,3 +262,31 @@ PY
 
 다음 Part 4 에서는 이러한 Runtime/Memory/Gateway 구조에 **Observability(추적/로그)와 Identity(권한/보안) 레이어를 더해**, 운영 가능한 프로덕션급 에이전트 시스템으로 확장하는 방법을 살펴봅니다.
 
+---
+
+## 8. 퀴즈 & 실습 과제
+
+### 8.1 개념 퀴즈
+
+1. Gateway 레이어가 없을 때, LLM 이 직접 HTTP API 를 호출하게 두면 어떤 문제가 발생할 수 있을까요? (보안/안정성/운영 측면에서 각각 1개 이상)
+2. OpenAPI 스펙에서 **요청 스키마**와 **응답 스키마**를 구분해서 정의하는 이유는 무엇인가요?
+3. Lambda 기반 도구와 HTTP(OpenAPI) 기반 도구의 공통점과 차이점을 각각 2개씩 적어보세요.
+4. `tests/02-gateway/test_validation.py` 와 같은 Validation 테스트가 없으면, 장기적으로 어떤 문제가 생길 수 있을까요?
+
+### 8.2 코드 실습
+
+1. **새 Calculator 연산 추가하기**
+	- `calculator_service.py` 에서 새로운 연산(예: 제곱, 모듈로 등)을 하나 추가해 보세요. 예: `/pow`, `/mod` 등.
+	- 동일한 연산을 `calculator_api.yaml` OpenAPI 스펙에도 반영합니다.
+	- 새 도구 엔드포인트를 검증하는 테스트를 `tests/02-gateway/test_openapi_tool.py` 에 추가합니다.
+
+2. **Validation 강화하기**
+	- OpenAPI 스펙에 파라미터 제약조건(예: `minimum`, `maximum`, `enum`)을 추가해 보세요.
+	- 예: 나눗셈 `/div` 에서 분모 `b` 가 0이 될 수 없도록 `minimum: 0.0001` 같은 제약을 추가하거나, 별도 Validation 로직을 두어 0일 때는 명시적 에러를 반환하도록 수정합니다.
+	- 이에 대한 실패 테스트를 `tests/02-gateway/test_validation.py` 에 추가합니다.
+
+3. **도구 이름/설명 개선하기**
+	- OpenAPI 스펙의 `summary` / `description` 필드를 더 풍부하게 채워, LLM 이 도구의 목적을 더 잘 이해하도록 돕습니다.
+	- 변경 전/후에 LLM 에게 "사용 가능한 도구를 설명해 달라"는 프롬프트를 보내 보고(실제 LLM 환경이라면), 어떤 차이가 있는지 관찰해 보세요.
+
+

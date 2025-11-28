@@ -350,3 +350,31 @@ PY
 > 2. 위의 원라이너/스크립트로 `handler` 와 `LLMAgent` 직접 호출
 > 3. `echo_agent.py` 를 열어 system prompt 와 액션 분기를 스스로 수정해 보기
 
+---
+
+## 8. 퀴즈 & 실습 과제
+
+### 8.1 개념 퀴즈
+
+1. Runtime 관점에서 "에이전트"를 **함수 시그니처**로 표현하면 무엇인가요? (정확한 타입 힌트까지 적어보세요)
+2. `LLMAgent.process_message` 가 반환하는 dict 에 반드시 포함되는 필드 3개 이상을 적어보세요.
+3. 로컬 환경과 AgentCore Runtime(MicroVM) 환경에서 `/tmp/session.txt` 의 동작이 어떻게 다른지 설명해 보세요.
+4. `tests/01-runtime/test_llm_agent.py` 에서 MockProvider 를 사용하는 이유는 무엇인가요?
+
+### 8.2 코드 실습
+
+1. **시스템 프롬프트 커스터마이징**
+	- `LLMAgent._default_system_prompt()` 를 열어, 현재 테스트 도메인(예: 헤어샵/병원/콜센터 등)에 맞게 더 구체적인 역할과 말투를 정의해 보세요.
+	- 변경 후 `pytest tests/01-runtime/test_llm_agent.py -v` 를 실행해, 테스트가 여전히 통과하는지 확인합니다.
+
+2. **새 액션 추가하기**
+	- `echo_agent.handler` 에 `action == "debug"` 분기를 추가해 보세요.
+	- `debug` 액션은 현재 `session_id` 와 `conversation_history` 길이만 반환하도록 설계합니다.
+	- 예: `{ "status": "debug", "session_id": ..., "history_len": ... }`
+	- 추가로, 이 동작을 검증하는 새 테스트를 `tests/01-runtime/test_echo.py` (또는 별도 파일) 에 작성해 보세요.
+
+3. **에러 처리 강화**
+	- `LLMAgent.process_message` 의 `except` 블록을 수정해, 에러 메시지에 `session_id` 와 간단한 힌트(예: "관리자에게 문의하세요")를 포함하도록 개선해 보세요.
+	- 개선 후, 의도적으로 에러를 발생시키는 테스트(예: LLM provider 를 고의로 깨트린 뒤 호출)를 추가하여, 에러 응답 스키마가 유지되는지 확인합니다.
+
+
