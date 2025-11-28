@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # Add agents directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "agents"))
 
-from echo_agent import EchoAgent, handler
+from echo_agent import LLMAgent, handler
 
 
 class TestSessionIsolation:

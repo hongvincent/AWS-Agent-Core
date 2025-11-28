@@ -1,10 +1,10 @@
 """
-Echo Agent for AWS Bedrock AgentCore Runtime Testing
+LLM-Powered Agent for AWS Bedrock AgentCore Runtime Testing
 
-This agent implements a simple echo functionality to test basic Runtime features:
-- Session creation and termination
-- Message handling
-- CloudWatch logging integration
+This agent uses configurable LLM providers (OpenAI/Bedrock/Mock) to:
+- Generate intelligent responses instead of simple echoes
+- Test AgentCore Runtime with realistic AI interactions
+- Support session management and context awareness
 """
 
 import json
@@ -15,58 +15,111 @@ from datetime import datetime
 import uuid
 from typing import Any, Dict
 
+# Ensure project root is on sys.path
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from tools.llm_provider import get_llm_provider
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler('/tmp/echo_agent.log')
+        logging.FileHandler('/tmp/llm_agent.log')
     ]
 )
 logger = logging.getLogger(__name__)
 
 
-class EchoAgent:
-    """Simple echo agent for testing AgentCore Runtime"""
+class LLMAgent:
+    """LLM-powered agent for testing AgentCore Runtime with intelligent responses"""
 
-    def __init__(self, session_id: str = None):
+    def __init__(self, session_id: str = None, system_prompt: str = None):
         self.session_id = session_id or self._generate_session_id()
-        logger.info(f"EchoAgent initialized with session_id: {self.session_id}")
+        self.llm_provider = get_llm_provider()
+        self.system_prompt = system_prompt or self._default_system_prompt()
+        self.conversation_history = []
+        logger.info(f"LLMAgent initialized with session_id: {self.session_id}, provider: {self.llm_provider.provider_name}")
 
     def _generate_session_id(self) -> str:
         """Generate a unique session ID"""
         # Use UUID to avoid collisions when created within the same second
         return f"session_{uuid.uuid4().hex}"
 
-    def process_message(self, message: str) -> Dict[str, Any]:
+    def _default_system_prompt(self) -> str:
+        """Default system prompt for AgentCore testing context"""
+        return (
+            "당신은 AWS AgentCore 테스트를 위한 AI 어시스턴트입니다. "
+            "사용자와 자연스럽게 대화하며 다음 기능을 테스트합니다:\n"
+            "- 세션 관리 및 컨텍스트 유지\n"
+            "- 메모리 저장 및 사용자 선호도 학습\n"
+            "- 도구 호출 및 외부 서비스 연동\n"
+            "한국어로 친근하고 도움이 되는 응답을 제공하세요."
+        )
+
+    def process_message(self, message: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
-        Process incoming message and return echo response
+        Process incoming message and generate LLM-powered response
 
         Args:
-            message: Input message to echo
+            message: Input message from user
+            context: Optional context from memory/tools
 
         Returns:
-            Dict containing response and metadata
+            Dict containing LLM response and metadata
         """
-        logger.info(f"Processing message: {message}")
+        logger.info(f"Processing message with LLM: {message}")
 
-        # Special handling for "ping"
-        if message.lower() == "ping":
-            response = "pong"
-        else:
-            response = f"you said: {message}"
+        try:
+            # Build conversation context
+            messages = [{"role": "system", "content": self.system_prompt}]
+            
+            # Add conversation history (last 5 turns for context)
+            messages.extend(self.conversation_history[-10:])
+            
+            # Add current message
+            messages.append({"role": "user", "content": message})
+            
+            # Add context information if available
+            if context:
+                context_str = f"컨텍스트 정보: {json.dumps(context, ensure_ascii=False)}"
+                messages.append({"role": "system", "content": context_str})
 
-        result = {
-            "session_id": self.session_id,
-            "input": message,
-            "output": response,
-            "timestamp": datetime.now().isoformat(),
-            "status": "success"
-        }
+            # Generate LLM response
+            response = self.llm_provider.chat(
+                messages=messages,
+                temperature=0.7,
+                max_tokens=512
+            )
 
-        logger.info(f"Response generated: {response}")
-        return result
+            # Update conversation history
+            self.conversation_history.append({"role": "user", "content": message})
+            self.conversation_history.append({"role": "assistant", "content": response})
+
+            result = {
+                "session_id": self.session_id,
+                "input": message,
+                "output": response,
+                "provider": self.llm_provider.provider_name,
+                "model": self.llm_provider.model_name,
+                "timestamp": datetime.now().isoformat(),
+                "status": "success"
+            }
+
+            logger.info(f"LLM response generated: {response[:100]}...")
+            return result
+
+        except Exception as e:
+            logger.error(f"Error processing message: {str(e)}")
+            fallback_response = f"죄송합니다. 처리 중 오류가 발생했습니다: {str(e)}"
+            return {
+                "session_id": self.session_id,
+                "input": message,
+                "output": fallback_response,
+                "error": str(e),
+                "timestamp": datetime.now().isoformat(),
+                "status": "error"
+            }
 
     def write_session_file(self, content: str) -> None:
         """
@@ -120,11 +173,11 @@ def handler(event: Dict[str, Any], context: Any = None) -> Dict[str, Any]:
         action = event.get('action', 'echo')
 
         # Initialize agent
-        agent = EchoAgent(session_id=session_id)
+        agent = LLMAgent(session_id=session_id)
 
         # Perform action
         if action == 'echo':
-            result = agent.process_message(message)
+            result = agent.process_message(message, context=event.get('context'))
         elif action == 'write':
             agent.write_session_file(message)
             result = {"status": "written", "session_id": agent.session_id}
@@ -151,10 +204,11 @@ def handler(event: Dict[str, Any], context: Any = None) -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
-    # Test the agent locally
+    # Test the LLM agent locally
     test_events = [
-        {"message": "ping", "action": "echo"},
-        {"message": "Hello, AgentCore!", "action": "echo"},
+        {"message": "안녕하세요! 오늘 처음 방문했어요.", "action": "echo"},
+        {"message": "제 이름은 김민수이고, 강남점을 자주 이용합니다.", "action": "echo", "context": {"user_id": "user_123"}},
+        {"message": "다음 주에 예약하고 싶은데 도와주세요.", "action": "echo"},
         {"message": "Session A Data", "action": "write"},
         {"action": "read"},
     ]

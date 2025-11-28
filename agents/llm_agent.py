@@ -12,6 +12,8 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+# Ensure project root is on sys.path so 'tools' is importable when run as script
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from tools.llm_client import LLMClient
 
 logging.basicConfig(
