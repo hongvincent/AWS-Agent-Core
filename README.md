@@ -11,6 +11,7 @@
 - [설치 및 설정](#설치-및-설정)
 - [테스트 시나리오](#테스트-시나리오)
 - [실행 방법](#실행-방법)
+- [AgentCore Deep-Dive 교육 코스](#agentcore-deep-dive-교육-코스)
 - [참고 자료](#참고-자료)
 
 ## 🎯 AgentCore 개요
@@ -362,6 +363,29 @@ python agents/timer_agent.py
 # Memory 관리자
 python agents/memory_manager.py
 ```
+
+## 🎓 AgentCore Deep-Dive 교육 코스
+
+이 리포지토리는 단순 테스트 모음이 아니라, **AgentCore 아키텍처를 심층 학습하기 위한 교육 코스**도 함께 제공합니다. 아래 문서들을 순서대로 따라가면 Runtime → Memory → Gateway → Observability/Identity 까지 전체 흐름을 코드와 테스트로 익힐 수 있습니다.
+
+### 코스 목차
+
+- **Part 0 – 인트로 & 로드맵**  
+  `docs/agent_course_part0_intro.md`
+
+- **Part 1 – Runtime 에이전트 개요**  
+  `docs/agent_course_part1_overview_runtime.md`
+
+- **Part 2 – LLM 기반 메모리 시스템**  
+  `docs/agent_course_part2_llm_and_memory.md`
+
+- **Part 3 – Gateway & Tools (OpenAPI/Lambda)**  
+  `docs/agent_course_part3_gateway_and_tools.md`
+
+- **Part 4 – Observability, Identity, 통합 시나리오**  
+  `docs/agent_course_part4_observability_identity_integration.md`
+
+각 Part 문서 하단에는 **퀴즈 & 실습 과제**가 포함되어 있으니, 단순히 읽기만 하지 말고 직접 테스트/코드를 수정해 보면서 진행하는 것을 권장합니다.
 
 ## 📊 체크리스트
 
